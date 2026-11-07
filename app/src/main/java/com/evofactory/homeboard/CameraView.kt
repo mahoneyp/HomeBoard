@@ -575,13 +575,14 @@ private class CameraConnection(
 
     // On the player's thread: logs what the camera describes, and takes out its audio if unused
     private fun onDescription(sdp: String): String {
-        val described = sdpTracks(sdp)
+        val fixedSdp = sdp.replace(Regex("(?m)^s=[ \\t]*(?=\\r?$)"), "s=-")
+        val described = sdpTracks(fixedSdp)
         val takeOut = !useAudio && described.any { it.media == "audio" }
         if (described != tracks) {
             AppLog.i(TAG, "Player $logId tracks: ${described.joinToString()}" + if (takeOut) ", audio taken out" else "")
         }
         tracks = described
-        return if (takeOut) sdpWithoutAudio(sdp) else sdp
+        return if (takeOut) sdpWithoutAudio(fixedSdp) else fixedSdp
     }
 
     private val attempt = Runnable { attempt() }
